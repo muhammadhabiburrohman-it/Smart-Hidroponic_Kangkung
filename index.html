@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Smart Hydroponics</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+      width: 100%;
+    }
+
+    :root {
+      --soil-0: #F6F8F2;
+      --soil-1: #EAF1E3;
+      --forest-9: #12261D;
+      --forest-8: #1B4332;
+      --forest-6: #2D6A4F;
+      --leaf-5: #40916C;
+      --sprout-4: #74C69D;
+      --sprout-3: #B7E4C7;
+      --amber: #C99A5B;
+      --clay: #B5563E;
+      --ink: #1C2620;
+      --paper: #FFFFFF;
+    }
+
+    :root:not([data-theme="light"]) {
+      @media (prefers-color-scheme: dark) {
+        --soil-0: #0E1712;
+        --soil-1: #152019;
+        --paper: #182620;
+        --ink: #E7EFE9;
+        --sprout-3: #28402F;
+      }
+    }
+
+    :root[data-theme="dark"] {
+      --soil-0: #0E1712;
+      --soil-1: #152019;
+      --paper: #182620;
+      --ink: #E7EFE9;
+      --sprout-3: #28402F;
+    }
+
+    body {
+      background: var(--soil-0);
+      color: var(--ink);
+      font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    }
+
+    .font-display {
+      font-family: 'Fraunces', ui-serif, Georgia, serif;
+    }
+
+    .card {
+      background: var(--paper);
+      border: 1px solid color-mix(in srgb, var(--forest-8) 10%, transparent);
+    }
+
+    .input-field {
+      background: var(--soil-1);
+      border: 1px solid color-mix(in srgb, var(--forest-8) 14%, transparent);
+      color: var(--ink);
+    }
+
+    .input-field:focus {
+      outline: none;
+      border-color: var(--leaf-5);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--leaf-5) 20%, transparent);
+    }
+
+    .btn-primary {
+      background: var(--forest-8);
+      color: var(--soil-0);
+      transition: background-color .2s ease, transform .1s ease;
+    }
+
+    .btn-primary:hover {
+      background: var(--forest-6);
+    }
+
+    .btn-primary:active {
+      transform: scale(0.98);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    /* Cegah auto-zoom di iOS Safari saat input di-fokus (butuh font-size >=16px) */
+    @media (max-width: 640px) {
+      .input-field {
+        font-size: 16px;
+      }
+    }
+
+    @keyframes shake {
+
+      10%,
+      90% {
+        transform: translateX(-1px);
+      }
+
+      20%,
+      80% {
+        transform: translateX(2px);
+      }
+
+      30%,
+      50%,
+      70% {
+        transform: translateX(-4px);
+      }
+
+      40%,
+      60% {
+        transform: translateX(4px);
+      }
+    }
+
+    .shake {
+      animation: shake 0.4s ease;
+    }
+
+    ::selection {
+      background: var(--sprout-4);
+      color: var(--forest-9);
+    }
+  </style>
+</head>
+
+<body class="antialiased min-h-screen w-full flex items-center justify-center px-4 sm:px-5 py-8">
+
+  <div class="w-full max-w-sm mx-auto">
+
+    <div class="flex flex-col items-center mb-8">
+      <svg width="34" height="34" viewBox="0 0 26 26" fill="none" class="mb-3">
+        <path d="M13 24C13 24 5 19.5 5 11.5C5 6.8 8.6 3 13 2C17.4 3 21 6.8 21 11.5C21 19.5 13 24 13 24Z"
+          fill="var(--leaf-5)" />
+        <path d="M13 4.5V21.5" stroke="var(--soil-0)" stroke-width="1.1" stroke-linecap="round" />
+      </svg>
+      <span class="font-display font-semibold text-xl leading-tight" style="color:var(--forest-8)">Smart
+        Hydroponics</span>
+      <span class="text-xs font-medium tracking-wide mt-1" style="color:var(--leaf-5)">Embedded System 2026</span>
+    </div>
+
+    <form id="login-form" class="card rounded-2xl p-6 sm:p-7 shadow-sm">
+      <h1 class="font-display text-xl font-semibold mb-1" style="color:var(--forest-9)">Masuk</h1>
+      <p class="text-sm mb-6" style="color:color-mix(in srgb, var(--ink) 60%, transparent)">Khusus untuk pengelola
+        sistem monitoring.</p>
+
+      <div id="error-box" class="hidden mb-4 text-sm px-3.5 py-2.5 rounded-xl"
+        style="background:color-mix(in srgb, var(--clay) 12%, transparent); color:var(--clay)"></div>
+
+      <label class="block text-sm font-medium mb-1.5" style="color:var(--forest-9)" for="email">Email</label>
+      <input id="email" type="email" required autocomplete="username"
+        class="input-field w-full rounded-xl px-3.5 py-2.5 text-sm mb-4" placeholder="nama@contoh.com">
+
+      <label class="block text-sm font-medium mb-1.5" style="color:var(--forest-9)" for="password">Kata sandi</label>
+      <div class="relative mb-1">
+        <input id="password" type="password" required autocomplete="current-password"
+          class="input-field w-full rounded-xl px-3.5 py-2.5 pr-11 text-sm" placeholder="••••••••">
+        <button type="button" id="toggle-password"
+          class="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs font-medium px-1.5"
+          style="color:var(--leaf-5)">Lihat</button>
+      </div>
+
+      <button type="submit" id="submit-btn" class="btn-primary w-full rounded-xl py-2.5 text-sm font-semibold mt-6">
+        Masuk
+      </button>
+    </form>
+
+    <p class="text-xs text-center mt-6" style="color:color-mix(in srgb, var(--ink) 45%, transparent)">
+      Smart Hydroponics — Embedded System 2026
+    </p>
+  </div>
+
+  <script>
+    (function () {
+      // ---------------------------------------------------------
+      // FIREBASE INIT — pakai project yang sama dengan dashboard
+      // ---------------------------------------------------------
+      const firebaseConfig = {
+        apiKey: "YOUR_API_KEY",
+        authDomain: "YOUR_PROJECT.firebaseapp.com",
+        databaseURL: "https://YOUR_PROJECT-default-rtdb.REGION.firebasedatabase.app",
+        projectId: "YOUR_PROJECT_ID",
+        storageBucket: "YOUR_PROJECT.firebasestorage.app",
+        messagingSenderId: "YOUR_SENDER_ID",
+        appId: "YOUR_APP_ID"
+      };
+      firebase.initializeApp(firebaseConfig);
+      const auth = firebase.auth();
+      // Sesi login TIDAK disimpan sama sekali: begitu halaman ditutup/dibuka
+      // ulang, status login hilang dan wajib login lagi. Sengaja dibuat begitu
+      // karena dashboard mengontrol perangkat penting (pompa/nutrisi hidroponik).
+      auth.setPersistence(firebase.auth.Auth.Persistence.SESSION).catch(err => {
+        console.warn('Gagal set persistence:', err.message);
+      });
+
+      const form = document.getElementById('login-form');
+      const emailInput = document.getElementById('email');
+      const passInput = document.getElementById('password');
+      const errorBox = document.getElementById('error-box');
+      const submitBtn = document.getElementById('submit-btn');
+      const toggleBtn = document.getElementById('toggle-password');
+
+      // Kalau sudah login sebelumnya, langsung lempar ke dashboard
+      auth.onAuthStateChanged(user => {
+        if (user) window.location.href = 'dashboard.html';
+      });
+
+      toggleBtn.addEventListener('click', () => {
+        const isPw = passInput.type === 'password';
+        passInput.type = isPw ? 'text' : 'password';
+        toggleBtn.textContent = isPw ? 'Sembunyikan' : 'Lihat';
+      });
+
+      function tampilkanError(pesan) {
+        errorBox.textContent = pesan;
+        errorBox.classList.remove('hidden');
+        form.classList.remove('shake');
+        void form.offsetWidth; // reset animasi
+        form.classList.add('shake');
+      }
+
+      function pesanError(kode) {
+        switch (kode) {
+          case 'auth/invalid-email': return 'Format email tidak valid.';
+          case 'auth/user-disabled': return 'Akun ini dinonaktifkan.';
+          case 'auth/user-not-found':
+          case 'auth/wrong-password':
+          case 'auth/invalid-credential': return 'Email atau kata sandi salah.';
+          case 'auth/too-many-requests': return 'Terlalu banyak percobaan. Coba lagi beberapa saat lagi.';
+          case 'auth/network-request-failed': return 'Koneksi bermasalah. Periksa jaringan Anda.';
+          default: return 'Gagal masuk. Silakan coba lagi.';
+        }
+      }
+
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        errorBox.classList.add('hidden');
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Memproses…';
+
+        auth.signInWithEmailAndPassword(emailInput.value.trim(), passInput.value)
+          .then(() => {
+            window.location.href = 'dashboard.html';
+          })
+          .catch(err => {
+            tampilkanError(pesanError(err.code));
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Masuk';
+          });
+      });
+    })();
+  </script>
+</body>
+
+</html>
